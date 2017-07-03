@@ -102,6 +102,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
         var dialog = $("#edit-user-dialog");
         dialog.data('user', user);
         dialog.find(".username-input").val(user);
+        dialog.find("#edit-user-label").html('修改用户');
+        dialog.find(".btn.btn-primary.save-button").html('确定');
+        dialog.find(".btn.btn-default").html('取消');
         dialog.find(".admin-checkbox").attr("checked", admin==='True');
         dialog.modal();
     });
@@ -127,6 +130,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
         var row = get_row(el);
         var user = row.data('user');
         var dialog = $("#delete-user-dialog");
+        dialog.find('#delete-user-label').html('删除用户');
+        dialog.find(".delete-button").html('确定');
+        dialog.find(".btn-default").html('取消');
         dialog.find(".delete-username").text(user);
         dialog.modal();
     });
@@ -145,6 +151,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
     $("#add-users").click(function () {
         var dialog = $("#add-users-dialog");
         dialog.find(".username-input").val('');
+        dialog.find("#add-users-label").html('添加用户');
+        dialog.find(".save-button").html('确定');
+        dialog.find(".btn-default").html('取消');
         dialog.find(".admin-checkbox").prop("checked", false);
         dialog.modal();
     });
@@ -169,6 +178,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
     });
 
     $("#stop-all-servers").click(function () {
+        $("#stop-all-servers-dialog").find("#stop-all-servers-label").html('停止所有服务');
+        $("#stop-all-servers-dialog").find(".stop-all-button").html('确定');
+        $("#stop-all-servers-dialog").find(".btn-default").html('取消');
         $("#stop-all-servers-dialog").modal();
     });
 
@@ -179,6 +191,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
 
     $("#shutdown-hub").click(function () {
         var dialog = $("#shutdown-hub-dialog");
+        dialog.find("#shutdown-hub-label").html('关闭Hub');
+        dialog.find(".shutdown-button").html('确定');
+        dialog.find(".btn-default").html('取消');
         dialog.find("input[type=checkbox]").prop("checked", true);
         dialog.modal();
     });

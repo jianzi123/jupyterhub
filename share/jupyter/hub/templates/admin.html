@@ -22,19 +22,19 @@
     <thead>
       <tr>
         {% block thead %}
-        {{ th("User (%i)" % users|length, 'name') }}
-        {{ th("Admin", 'admin') }}
-        {{ th("Last Seen", 'last_activity') }}
-        {{ th("Running (%i)" % running|length, 'running', colspan=2) }}
+        {{ th("用户 (%i)" % users|length, 'name') }}
+        {{ th("权限", 'admin') }}
+        {{ th("最后查看时间", 'last_activity') }}
+        {{ th("运行状态 (%i)" % running|length, 'running', colspan=2) }}
         {% endblock thead %}
       </tr>
     </thead>
     <tbody>
       <tr class="user-row add-user-row">
         <td colspan="12">
-          <a id="add-users" class="col-xs-2 btn btn-default">Add Users</a>
-          <a id="stop-all-servers" class="col-xs-2 col-xs-offset-5 btn btn-danger">Stop All</a>
-          <a id="shutdown-hub" class="col-xs-2 col-xs-offset-1 btn btn-danger">Shutdown Hub</a>
+          <a id="add-users" class="col-xs-2 btn btn-default">添加用户</a>
+          <a id="stop-all-servers" class="col-xs-2 col-xs-offset-5 btn btn-danger">停止所有服务</a>
+          <a id="shutdown-hub" class="col-xs-2 col-xs-offset-1 btn btn-danger">关闭Hub</a>
         </td>
       </tr>
   {% for u in users %}
@@ -44,20 +44,20 @@
       <td class="admin-col col-sm-2">{% if u.admin %}admin{% endif %}</td>
       <td class="time-col col-sm-3">{{u.last_activity.isoformat() + 'Z'}}</td>
       <td class="server-col col-sm-2 text-center">
-        <span class="stop-server btn btn-xs btn-danger {% if not u.running %}hidden{% endif %}">stop server</span>
-        <span class="start-server btn btn-xs btn-success {% if u.running %}hidden{% endif %}">start server</span>
+        <span class="stop-server btn btn-xs btn-danger {% if not u.running %}hidden{% endif %}">停止</span>
+        <span class="start-server btn btn-xs btn-success {% if u.running %}hidden{% endif %}">启动</span>
       </td>
       <td class="server-col col-sm-1 text-center">
         {% if admin_access %}
-        <span class="access-server btn btn-xs btn-success {% if not u.running %}hidden{% endif %}">access server</span>
+        <span class="access-server btn btn-xs btn-success {% if not u.running %}hidden{% endif %}">转到服务</span>
         {% endif %}
       </td>
       <td class="edit-col col-sm-1 text-center">
-        <span class="edit-user btn btn-xs btn-primary">edit</span>
+        <span class="edit-user btn btn-xs btn-primary">编辑</span>
       </td>
       <td class="edit-col col-sm-1 text-center">
         {% if u.name != user.name %}
-        <span class="delete-user btn btn-xs btn-danger">delete</span>
+        <span class="delete-user btn btn-xs btn-danger">删除</span>
         {% endif %}
       </td>
       {% endblock user_row %}
@@ -68,25 +68,25 @@
 </div>
 
 {% call modal('Delete User', btn_class='btn-danger delete-button') %}
-  Are you sure you want to delete user <span class="delete-username">USER</span>?
-  This operation cannot be undone.
+  确定要删除用户 <span class="delete-username">USER</span>?
+  删除操作不能恢复。
 {% endcall %}
 
 {% call modal('Stop All Servers', btn_label='Stop All', btn_class='btn-danger stop-all-button') %}
-  Are you sure you want to stop all your users' servers? Kernels will be shutdown and unsaved data may be lost.
+  确定要删除所有的服务？Kernels将会被关闭并且会丢失没有保存的数据。
 {% endcall %}
 
 {% call modal('Shutdown Hub', btn_label='Shutdown', btn_class='btn-danger shutdown-button') %}
-  Are you sure you want to shutdown the Hub?
-  You can choose to leave the proxy and/or single-user servers running by unchecking the boxes below:
+  确定要关闭Hub?
+  选择要关闭的代理或者服务：
   <div class="checkbox">
     <label>
-      <input type="checkbox" class="shutdown-proxy-checkbox">Shutdown proxy
+      <input type="checkbox" class="shutdown-proxy-checkbox">关闭代理
     </label>
   </div>
   <div class="checkbox">
     <label>
-      <input type="checkbox" class="shutdown-servers-checkbox">Shutdown single-user-servers
+      <input type="checkbox" class="shutdown-servers-checkbox">关闭单用户服务
     </label>
   </div>
 {% endcall %}
@@ -100,7 +100,7 @@
     input type="text"
     {%- endif %}
     class="form-control username-input"
-    placeholder="{%- if multi -%} usernames separated by lines{%- else -%} username {%-endif-%}">
+    placeholder="{%- if multi -%} 输入用户名，并按行分割 {%- else -%} 输入用户名 {%-endif-%}">
   {%- if multi -%}</textarea>{%- endif -%}
 </div>
 <div class="checkbox">

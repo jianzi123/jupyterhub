@@ -4,6 +4,9 @@
 # Distributed under the terms of the Modified BSD License.
 
 import json
+import pwd
+import crypt
+from subprocess import Popen, PIPE
 
 from tornado import gen, web
 
@@ -26,7 +29,6 @@ class SelfAPIHandler(APIHandler):
         if user is None:
             raise web.HTTPError(403)
         self.write(json.dumps(self.user_model(user)))
-
 
 class UserListAPIHandler(APIHandler):
     @admin_only
@@ -282,6 +284,13 @@ class UserAdminAccessAPIHandler(APIHandler):
         if not user.running:
             raise web.HTTPError(400, "%s's server is not running" % name)
 
+# class UserPwdAPIHandler(APIHandler):
+#     def get(self, name):
+#         current = self.get_current_user()
+#
+#     @admin_only
+#     def post(self, name):
+#         pass
 
 default_handlers = [
     (r"/api/user", SelfAPIHandler),
@@ -291,4 +300,5 @@ default_handlers = [
     (r"/api/users/([^/]+)/servers", UserCreateNamedServerAPIHandler),
     (r"/api/users/([^/]+)/servers/([^/]+)", UserDeleteNamedServerAPIHandler),
     (r"/api/users/([^/]+)/admin-access", UserAdminAccessAPIHandler),
+    #(r"/api/users/pwd/([^/]+)", UserPwdAPIHandler),
 ]

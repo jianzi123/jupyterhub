@@ -18,21 +18,23 @@
 {% else %}
 <form action="{{login_url}}?next={{next}}" method="post" role="form">
   <div class="auth-form-header">
-    Sign in
+    登录
   </div>
   <div class='auth-form-body'>
-
+  <p>{{ login_url }}; {{ next }}</p>
+    <!--
     <p id='insecure-login-warning' class='hidden'>
     Warning: JupyterHub seems to be served over an unsecured HTTP connection.
     We strongly recommend enabling HTTPS for JupyterHub.
     </p>
+    -->
 
     {% if login_error %}
     <p class="login_error">
       {{login_error}}
     </p>
     {% endif %}
-    <label for="username_input">Username:</label>
+    <label for="username_input">用户名:</label>
     <input
       id="username_input"
       type="username"
@@ -44,7 +46,9 @@
       tabindex="1"
       autofocus="autofocus"
     />
-    <label for='password_input'>Password:</label>
+    <!--required="required"
+      oninvalid="setCustomValidity('用户名不能为空')"-->
+    <label for='password_input'>密码:</label>
     <input
       type="password"
       class="form-control"
@@ -52,12 +56,14 @@
       id="password_input"
       tabindex="2"
     />
+    <!--required="required"
+      oninvalid="setCustomValidity('密码不能为空')"-->
 
     <input
       type="submit"
       id="login_submit"
       class='btn btn-jupyter'
-      value='Sign In'
+      value='登录'
       tabindex="3"
     />
   </div>

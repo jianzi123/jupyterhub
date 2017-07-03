@@ -27,7 +27,7 @@
 <head>
     <meta charset="utf-8">
 
-    <title>{% block title %}JupyterHub{% endblock %}</title>
+    <title>{% block title %}Jump{% endblock %}</title>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
@@ -97,11 +97,11 @@
       <div class="collapse navbar-collapse" id="thenavbar">
         {% if user %}
         <ul class="nav navbar-nav">
-          <li><a href="{{base_url}}home">Home</a></li>
+          <li><a href="{{base_url}}home">首页</a></li>
           <li><a href="{{base_url}}token">Token</a></li>
           {% endif %}
           {% if user.admin %}
-          <li><a href="{{base_url}}admin">Admin</a></li>
+          <li><a href="{{base_url}}admin">管理</a></li>
         </ul>
         {% endif %}
         <ul class="nav navbar-nav navbar-right">
@@ -109,9 +109,10 @@
             {% block login_widget %}
               <span id="login_widget">
                 {% if user %}
-                  <a id="logout" class="navbar-btn btn-sm btn btn-default" href="{{logout_url}}"> <i aria-hidden="true" class="fa fa-sign-out"></i> Logout</a>
+                  <a id="user_info" class="btn-sm btn btn-default" href="javascript:alert('{{ user.name }}');"> <i aria-hidden="true" class="fa fa-sign-out"></i>{{ user.name }}</a>
+                  <a id="logout" class="navbar-btn btn-sm btn btn-default" href="{{logout_url}}"> <i aria-hidden="true" class="fa fa-sign-out"></i> 退出</a>
                 {% else %}
-                  <a id="login" class="btn-sm btn navbar-btn btn-default" href="{{login_url}}">Login</a>
+                  <a id="login" class="btn-sm btn navbar-btn btn-default" href="{{login_url}}">登录</a>
                 {% endif %}
               </span>
               {% endblock %}

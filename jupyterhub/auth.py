@@ -10,6 +10,7 @@ import re
 from shutil import which
 import sys
 from subprocess import Popen, PIPE, STDOUT
+import crypt
 
 from tornado import gen
 try:
@@ -379,6 +380,8 @@ class LocalAuthenticator(Authenticator):
         elif which('pw'):
             # Probably BSD
             return ['pw', 'useradd', '-m']
+        elif sys.platform == 'linux':
+            return ['adduser', '-m', '-s', '/bin/bash']
         else:
             # This appears to be the Linux non-interactive adduser command:
             return ['adduser', '-q', '--gecos', '""', '--disabled-password']
@@ -454,8 +457,10 @@ class LocalAuthenticator(Authenticator):
         Tested to work on FreeBSD and Linux, at least.
         """
         name = user.name
-        cmd = [ arg.replace('USERNAME', name) for arg in self.add_user_cmd ] + [name]
+        pwd = crypt.crypt('deeplearn', 'jion')
+        cmd = [ arg.replace('USERNAME', name) for arg in self.add_user_cmd ] + ['-p'] + [pwd] + [name]
         self.log.info("Creating user: %s", ' '.join(map(pipes.quote, cmd)))
+        print("Creating user: ".join(cmd))
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
         p.wait()
         if p.returncode:

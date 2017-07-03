@@ -145,6 +145,7 @@ class BaseHandler(RequestHandler):
     def get_auth_token(self):
         """Get the authorization token from Authorization header"""
         auth_header = self.request.headers.get('Authorization', '')
+        self.log.info("auth_header: %s"%(auth_header))
         match = auth_header_pat.match(auth_header)
         if not match:
             return None
@@ -169,6 +170,7 @@ class BaseHandler(RequestHandler):
     def get_current_user_token(self):
         """get_current_user from Authorization header token"""
         token = self.get_auth_token()
+        self.log.info("token: %s."%(token))
         if token is None:
             return None
         orm_token = orm.APIToken.find(self.db, token)
