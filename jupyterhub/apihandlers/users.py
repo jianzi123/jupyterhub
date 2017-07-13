@@ -6,6 +6,7 @@
 import json
 import pwd
 import crypt
+import os
 from subprocess import Popen, PIPE
 
 from tornado import gen, web
@@ -13,7 +14,8 @@ from tornado import gen, web
 from .. import orm
 from ..utils import admin_only
 from .base import APIHandler
-
+from os.path import exists
+from os.path import isfile
 
 class SelfAPIHandler(APIHandler):
     """Return the authenticated user's model
@@ -41,6 +43,7 @@ class UserListAPIHandler(APIHandler):
     @gen.coroutine
     def post(self):
         data = self.get_json_body()
+        self.log.info('add user data', data.get('usernames'))
         if not data or not isinstance(data, dict) or not data.get('usernames'):
             raise web.HTTPError(400, "Must specify at least one user to create")
         
@@ -53,11 +56,18 @@ class UserListAPIHandler(APIHandler):
         to_create = []
         invalid_names = []
         for name in usernames:
+            try:
+                info = pwd.getpwnam(name)
+                if info is not None:
+                    continue
+            except KeyError:
+                pass
             name = self.authenticator.normalize_username(name)
             if not self.authenticator.validate_username(name):
                 invalid_names.append(name)
                 continue
             user = self.find_user(name)
+            self.log.info(name)
             if user is not None:
                 self.log.warning("User %s already exists" % name)
             else:
@@ -76,18 +86,34 @@ class UserListAPIHandler(APIHandler):
         created = []
         for name in to_create:
             user = self.user_from_username(name)
+            self.log.info('create: %s', name)
             if admin:
                 user.admin = True
                 self.db.commit()
+                info = orm.User_info.create(self.db, name)
+                if info is None:
+                    raise web.HTTPError(400, "Failed to create user %s" % (name))
             try:
                 yield gen.maybe_future(self.authenticator.add_user(user))
+
+
             except Exception as e:
                 self.log.error("Failed to create user: %s" % name, exc_info=True)
                 del self.users[user]
                 raise web.HTTPError(400, "Failed to create user %s: %s" % (name, str(e)))
             else:
-                created.append(user)
-        
+                info = orm.User_info.create(self.db, name)
+                if info is None:
+                    raise web.HTTPError(400, "Failed to create user %s" % (name))
+                else:
+                    created.append(user)
+            data_dir = info.data_dir
+            if data_dir is None or data_dir == '':
+                self.log.warning('data_dir is empty.')
+            else:
+                cmd = 'mkdir -p -m 777 ' + data_dir
+                if os.system(cmd) != 0 :
+                    raise web.HTTPError(400, "Failed to create data dir %s." % (data_dir))
         self.write(json.dumps([ self.user_model(u) for u in created ]))
         self.set_status(201)
 
@@ -154,7 +180,13 @@ class UserAPIHandler(APIHandler):
             yield self.stop_single_user(user)
             if user.stop_pending:
                 raise web.HTTPError(400, "%s's server is in the process of stopping, please wait." % name)
-        
+        u = orm.User.find(self.db, name)
+        if u is not None:
+            info = orm.User_info.find(self.db, name)
+            if info is not None:
+                # orm.User_info.remove(info)
+                self.db.delete(info)
+                self.db.commit()
         yield gen.maybe_future(self.authenticator.delete_user(user))
         # remove from registry
         del self.users[user]
@@ -167,13 +199,61 @@ class UserAPIHandler(APIHandler):
         if user is None:
             raise web.HTTPError(404)
         data = self.get_json_body()
-        self._check_user_model(data)
+        # remove the check to add user_info
+        # self._check_user_model(data)
         if 'name' in data and data['name'] != name:
             # check if the new name is already taken inside db
             if self.find_user(data['name']):
                 raise web.HTTPError(400, "User %s already exists, username must be unique" % data['name'])
-        for key, value in data.items():
-            setattr(user, key, value)
+        # for key, value in data.items():
+        #     setattr(user, key, value)
+        setattr(user, 'admin', data['admin'])
+        setattr(user, 'name', data['name'])
+        info = orm.User_info.find(self.db, name)
+        if info is None:
+            raise web.HTTPError(400, "user: %s not exist in db." % name)
+        self.log.info(info)
+        o_home  = info.home
+        o_data  = info.data_dir
+        o_shell = info.shell
+        cmd = []
+        if o_home != data['home']:
+            if exists(data['home']):
+                raise web.HTTPError(500, " %s dir exist, please pich others." % data['home'])
+            else:
+                cmd.append('usermod -md ' + data['home'] + ' ' + name)
+                # self.log.info(cmd)
+                # if os.system(cmd) != 0 :
+                #     raise web.HTTPError(500, " changing home dir to %s failed." % data['home'])
+        self.log.info('%s; %s', o_data, data['data'])
+        if o_data != data['data']:
+            if exists(data['data']):
+                raise web.HTTPError(500, " %s dir exist, please pich others." % data['data'])
+            else :
+                if exists(o_data) == False:
+                    cmd.append('mkdir -p -m 777 ' + data['data'])
+                    # self.log.info('%s', cmd)
+                    # if os.system(cmd) != 0:
+                    #     raise web.HTTPError(500, " create dir %s failed." % data['data'])
+                else:
+                    cmd.append('mv ' + o_data + ' ' + data['data'])
+                    # self.log.info('%s', cmd)
+                    # if os.system(cmd) != 0 :
+                    #     raise web.HTTPError(500, " changing dir %s to %s failed." % o_data, data['data'])
+        if o_shell != data['shell']:
+            if isfile(data['shell']) == False:
+                raise web.HTTPError(500, " %s is not exist, please repick someone." % data['shell'])
+            else:
+                cmd.append('usermod -s ' + data['shell'] + ' ' + name)
+                # self.log.info(cmd)
+                # if os.system(cmd) != 0 :
+                #     raise web.HTTPError(500, " changing shell to %s failed." % data['shell'])
+        for tmp in cmd:
+            if os.system(tmp) != 0 :
+                raise web.HTTPError(500, " exec command %s failed." % tmp)
+        setattr(info, 'home', data['home'])
+        setattr(info, 'data_dir', data['data'])
+        setattr(info, 'shell', data['shell'])
         self.db.commit()
         self.write(json.dumps(self.user_model(user)))
         
@@ -284,13 +364,32 @@ class UserAdminAccessAPIHandler(APIHandler):
         if not user.running:
             raise web.HTTPError(400, "%s's server is not running" % name)
 
-# class UserPwdAPIHandler(APIHandler):
-#     def get(self, name):
-#         current = self.get_current_user()
-#
-#     @admin_only
-#     def post(self, name):
-#         pass
+class UserPwdAPIHandler(APIHandler):
+    def get(self, name):
+        if not  name:
+            raise web.HTTPError(400, "user: %s is empty." % name)
+        info = orm.User_info.find(self.db, name)
+        # current = pwd.getpwnam(name)
+        # if current is None:
+        #     raise  web.HTTPError(400, "user: %s not exist." % name)
+        # data = {
+        #     'name': current.pw_name,
+        #     'dir': current.pw_dir,
+        #     'shell': current.pw_shell,
+        # }
+        if info is None:
+            raise web.HTTPError(400, "user: %s not exist in db." % name)
+        data = {
+            'name': name,
+            'dir': info.data_dir,
+            'shell': info.shell,
+            'home': info.home,
+        }
+        self.write(json.dumps(data))
+
+    @admin_only
+    def post(self, name):
+        pass
 
 default_handlers = [
     (r"/api/user", SelfAPIHandler),
@@ -300,5 +399,5 @@ default_handlers = [
     (r"/api/users/([^/]+)/servers", UserCreateNamedServerAPIHandler),
     (r"/api/users/([^/]+)/servers/([^/]+)", UserDeleteNamedServerAPIHandler),
     (r"/api/users/([^/]+)/admin-access", UserAdminAccessAPIHandler),
-    #(r"/api/users/pwd/([^/]+)", UserPwdAPIHandler),
+    (r"/api/users/pwd/([^/]+)", UserPwdAPIHandler),
 ]

@@ -100,23 +100,68 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
         var user = row.data('user');
         var admin = row.data('admin');
         var dialog = $("#edit-user-dialog");
+        dialog.find(".data_dir").prop("hidden", false);
+        dialog.find(".home").prop("hidden", false);
+        dialog.find(".shell").prop("hidden", false);
         dialog.data('user', user);
         dialog.find(".username-input").val(user);
         dialog.find("#edit-user-label").html('修改用户');
         dialog.find(".btn.btn-primary.save-button").html('确定');
         dialog.find(".btn.btn-default").html('取消');
         dialog.find(".admin-checkbox").attr("checked", admin==='True');
-        dialog.modal();
+        dialog.find("#home").val('');
+        dialog.find("#shell").val('');
+        dialog.find("#data_dir").val('');
+        //dialog.modal({backdrop: 'static'});
+        api.edit_user_before(user, {
+            async: false,
+            success: function(data) {
+                var obj = eval(data);
+                var name  = obj.name;
+                var shell = obj.shell;
+                var home   = obj.home;
+                var data  = obj.dir;
+                console.log(name, shell, home, data);
+                if (name != user)
+                 {
+                    alert('user not fit.');
+                    return
+                 }
+                var dialog = $("#edit-user-dialog");
+                dialog.find("#home").val(home);
+                dialog.find("#shell").val(shell);
+                dialog.find("#data_dir").val(data);
+                dialog.modal();
+            },
+            error: function(jqXHR, status, error) {
+//                var dialog = $("#edit-user-dialog");
+//                dialog.prop("aria-hidden", true);
+//                var url = document.URL;
+//                console.log(url);
+                //$("#edit-user-dialog").find(".modal-backdrop").remove();
+                //$(".model-open").find(".modal-backdrop").remove();
+//                $("#edit-user-dialog").load(url + ' #edit-user-dialog');
+                utils.ajax_error_dialog(jqXHR, status, error);
+            }
+        });
+        //dialog.modal();
     });
     
     $("#edit-user-dialog").find(".save-button").click(function () {
         var dialog = $("#edit-user-dialog");
-        var user = dialog.data('user');
-        var name = dialog.find(".username-input").val();
-        var admin = dialog.find(".admin-checkbox").prop("checked");
+        var user   = dialog.data('user');
+        var name   = dialog.find(".username-input").val();
+        var admin  = dialog.find(".admin-checkbox").prop("checked");
+
+        var home  = dialog.find("#home").val();
+        var shell = dialog.find("#shell").val();
+        var data  = dialog.find("#data_dir").val();
         api.edit_user(user, {
             admin: admin,
-            name: name
+            name:  name,
+            home:  home,
+            shell: shell,
+            data:  data,
         }, {
             success: function () {
                 window.location.reload();
@@ -150,6 +195,9 @@ require(["jquery", "bootstrap", "moment", "jhapi", "utils"], function ($, bs, mo
     
     $("#add-users").click(function () {
         var dialog = $("#add-users-dialog");
+        dialog.find(".data_dir").prop("hidden", true)
+        dialog.find(".home").prop("hidden", true)
+        dialog.find(".shell").prop("hidden", true)
         dialog.find(".username-input").val('');
         dialog.find("#add-users-label").html('添加用户');
         dialog.find(".save-button").html('确定');

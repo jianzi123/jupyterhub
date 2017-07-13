@@ -106,6 +106,42 @@ class Group(Base):
         """
         return db.query(cls).filter(cls.name == name).first()
 
+class User_info(Base):
+
+    __tablename__ = 'user_info'
+
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
+    home = Column(Unicode(255), default='/home')
+    data_dir = Column(Unicode(255), default='/home/jupyter_data')
+    shell = Column(Unicode(255), default='/bin/bash')
+    used = Column(Boolean, default=False)
+    @classmethod
+    def create(cls, db, name):
+        if not name:
+            return None
+        _home = '/home/' + name
+        _shell = '/bin/bash'
+        _data_dir = _home + '/data'
+        u = User.find(db, name)
+        if u is None:
+            return None
+        u_id = u.id
+        u_info = User_info(home=_home, shell=_shell, data_dir=_data_dir, user_id=u_id)
+        db.add(u_info)
+        db.commit()
+        return u_info
+
+    @classmethod
+    def find(cls, db, name):
+        if not name:
+            return None
+        u = User.find(db, name)
+        if u is None:
+            return None
+        u_id = u.id
+        info = db.query(cls).filter(cls.user_id == u_id).first()
+        return info
 
 class User(Base):
     """The User table
@@ -147,7 +183,8 @@ class User(Base):
     auth_state = Column(JSONDict)
     # group mapping
     groups = relationship('Group', secondary='user_group_map', back_populates='users')
-
+    # user_info
+    user_info = relationship('User_info', backref='user')
     def __repr__(self):
         if self.servers:
             server = self.servers[0]

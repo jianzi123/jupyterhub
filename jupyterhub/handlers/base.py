@@ -207,6 +207,10 @@ class BaseHandler(RequestHandler):
         """return User wrapper from orm.User object"""
         if orm_user is None:
             return
+        # self.log.error('orm_user:', orm_user)
+        # for key in self.users:
+        #     self.log.info("users: %s", self.users[key])
+        self.log.info("user:%s; value: %s.", orm_user, self.users[orm_user])
         return self.users[orm_user]
 
     def get_current_user_cookie(self):
@@ -237,6 +241,7 @@ class BaseHandler(RequestHandler):
             self.db.add(u)
             self.db.commit()
             user = self._user_from_orm(u)
+            # self.log.error('user:', user)
             self.authenticator.add_user(user)
         return user
 

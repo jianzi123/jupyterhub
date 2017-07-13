@@ -11,6 +11,7 @@ from shutil import which
 import sys
 from subprocess import Popen, PIPE, STDOUT
 import crypt
+from jupyterhub.orm import User_info, User
 
 from tornado import gen
 try:
@@ -381,7 +382,8 @@ class LocalAuthenticator(Authenticator):
             # Probably BSD
             return ['pw', 'useradd', '-m']
         elif sys.platform == 'linux':
-            return ['adduser', '-m', '-s', '/bin/bash']
+            # return ['adduser', '-m', '-s', '/bin/bash']
+            return ['adduser']
         else:
             # This appears to be the Linux non-interactive adduser command:
             return ['adduser', '-q', '--gecos', '""', '--disabled-password']

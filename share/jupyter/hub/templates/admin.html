@@ -93,7 +93,9 @@
 
 {% macro user_modal(name, multi=False) %}
 {% call modal(name, btn_class='btn-primary save-button') %}
-<div class="form-group">
+<div class="user_info container">
+<div class="form-group row">
+    <div class="col-sm-12 col-md-11 col-lg-11">
   <{%- if multi -%}
     textarea
     {%- else -%}
@@ -102,11 +104,35 @@
     class="form-control username-input"
     placeholder="{%- if multi -%} 输入用户名，并按行分割 {%- else -%} 输入用户名 {%-endif-%}">
   {%- if multi -%}</textarea>{%- endif -%}
+    </div>
 </div>
+  <div class="form-group row home" hidden="true">
+      <label for="home" class="col-sm-2 col-md-2 col-lg-2 control-label">家目录</label>
+      <div class="col-sm-10 col-md-8 col-lg-9">
+        <input type="text" class="form-control" id="home" placeholder="请输入家目录:/home/some-dir">
+      </div>
+    </div>
+    <div class="form-group row shell" hidden="true">
+      <label for="shell" class="col-sm-2 col-md-2 col-lg-2 control-label">shell版本</label>
+      <div class="col-sm-10 col-md-8 col-lg-9">
+        <input type="text" class="form-control" id="shell" placeholder="请输入shell版本:/bin/bash">
+      </div>
+    </div>
+    <div class="form-group row data_dir" hidden="true">
+      <label for="data_dir" class="col-sm-2 col-md-2 col-lg-2 control-label">数据存储路径</label>
+      <div class="col-sm-10 col-md-8 col-lg-9">
+        <input type="text" class="form-control" id="data_dir" placeholder="请输入数据存储路径:$HOME/data/">
+      </div>
+    </div>
+    <div class="row">
+<div class="col-sm-10 col-md-8 col-lg-9">
 <div class="checkbox">
   <label>
     <input type="checkbox" class="admin-checkbox">Admin
   </label>
+</div>
+</div>
+        </div>
 </div>
 {% endcall %}
 {% endmacro %}

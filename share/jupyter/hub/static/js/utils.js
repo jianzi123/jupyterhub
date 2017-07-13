@@ -104,9 +104,10 @@ define(['jquery'], function($){
     
     var log_ajax_error = function (jqXHR, status, error) {
         // log ajax failures with informative messages
-        var msg = "API request failed (" + jqXHR.status + "): ";
+        var msg = "API 请求失败: (" + jqXHR.status + "): ";
         console.log(jqXHR);
-        msg += ajax_error_msg(jqXHR);
+        msg += ajax_error_msg(jqXHR) + "; ";
+        //msg += jqXHR.responseText;
         console.log(msg);
         return msg;
     };
@@ -116,6 +117,7 @@ define(['jquery'], function($){
         var msg = log_ajax_error(jqXHR, status, error);
         var dialog = $("#error-dialog");
         dialog.find(".ajax-error").text(msg);
+        dialog.find("#error-label").text("网页君出现错误")
         dialog.modal();
     };
 

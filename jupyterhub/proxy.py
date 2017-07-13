@@ -278,6 +278,7 @@ class ConfigurableHTTPProxy(Proxy):
     def start(self):
         public_server = Server.from_url(self.public_url)
         api_server = Server.from_url(self.api_url)
+        self.log.info("public_url: %s; api_url: %s.", self.public_url, self.api_url)
         env = os.environ.copy()
         env['CONFIGPROXY_AUTH_TOKEN'] = self.auth_token
         cmd = self.command + [

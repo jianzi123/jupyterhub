@@ -21,6 +21,7 @@ define(['jquery', 'utils'], function ($, utils) {
     var update = function (d1, d2) {
         $.map(d2, function (i, key) {
             d1[key] = d2[key];
+            console.log(i,key, d1[key])
         });
         return d1;
     };
@@ -40,6 +41,8 @@ define(['jquery', 'utils'], function ($, utils) {
             'api',
             utils.encode_uri_components(path)
         );
+        console.log(url)
+        console.log(options)
         $.ajax(url, options);
     };
     
@@ -75,6 +78,7 @@ define(['jquery', 'utils'], function ($, utils) {
     JHAPI.prototype.add_users = function (usernames, userinfo, options) {
         options = options || {};
         var data = update(userinfo, {usernames: usernames});
+        console.log(data, userinfo)
         options = update(options, {
             type: 'POST',
             dataType: null,
@@ -83,7 +87,20 @@ define(['jquery', 'utils'], function ($, utils) {
         
         this.api_request('users', options);
     };
-    
+
+    JHAPI.prototype.edit_user_before = function (user, options) {
+        options = options || {}
+        options = update(options, {
+            type: 'GET',
+            dataType: 'json',
+            //data: JSON.stringify(userinfo)
+        });
+        this.api_request(
+            utils.url_path_join('users/pwd', user),
+            options
+        );
+    }
+
     JHAPI.prototype.edit_user = function (user, userinfo, options) {
         options = options || {};
         options = update(options, {
